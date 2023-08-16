@@ -294,7 +294,7 @@ def epa_scghg(sector = "CAMEL_m1_c0.20",
     else:
         meta = generate_meta(menu_item_global)
 
-    return([adjustments, gcnp* conv_2019to2020, meta])
+    return([adjustments, gcnp* conv_2019to2020, md* conv_2019to2020, meta])
 
 # Function to perform multiple runs of SCGHGs and combine into one file to save out
 def epa_scghgs(sectors,
@@ -333,7 +333,7 @@ def epa_scghgs(sectors,
             rho = i[1]
 
             print(f"Calculating {'territorial U.S.' if terr_us else 'global'} {sector_short} scghgs {'and gcnp' if gcnp else ''} \n discount rate: {discount_conversion_dict[str(eta) + '_' + str(rho)]} \n pulse year: {pulse_year}")
-            df_single_scghg, df_single_gcnp, meta = epa_scghg(sector = sector,
+            df_single_scghg, df_single_gcnp, df_single_md, meta = epa_scghg(sector = sector,
                                                           terr_us = terr_us,
                                                           discount_type = discount_type,
                                                           menu_option = menu_option,
@@ -355,16 +355,26 @@ def epa_scghgs(sectors,
             if 'simulation' in df_gcnp_expanded.dims:
                 df_gcnp_expanded = df_gcnp_expanded.drop_vars('simulation')
             all_arrays_gcnp = all_arrays_gcnp + [df_gcnp_expanded]    
+
+             # For marginal damages
+            df_md = df_single_md.assign_coords(discount_rate =  discount_conversion_dict[str(eta) + "_" + str(rho)], menu_option = menu_option, sector = sector_short)
+            df_md_expanded = df_md.expand_dims(['discount_rate','menu_option', 'sector'])
+            if 'simulation' in df_md_expanded.dims:
+                df_md_expanded = df_md_expanded.drop_vars('simulation')
+            all_arrays_md = all_arrays_md + [df_md_expanded]    
+        
         
             attrs = merge_meta(attrs,meta)
         
         print("Processing...")
         df_full_scghg = xr.combine_by_coords(all_arrays_uscghg)
         df_full_gcnp = xr.combine_by_coords(all_arrays_gcnp)
+        df_full_md = xr.combine_by_coords(all_arrays_md)
         
         # Changes coordinate names of gases
         df_full_scghg = df_full_scghg.assign_coords(gas=[gas_conversion_dict[gas] for gas in df_full_scghg.gas.values])
         df_full_gcnp = df_full_gcnp.assign_coords(gas=[gas_conversion_dict[gas] for gas in df_full_gcnp.gas.values])
+        df_full_md = df_full_md.assign_coords(gas=[gas_conversion_dict[gas] for gas in df_full_md.gas.values])
         
         # Splits SCGHGs by gas and saves them out separately
         # For uncollapsed SCGHGs
@@ -401,6 +411,15 @@ def epa_scghgs(sectors,
         with open(out_dir / f"attributes-{sector_short}.txt", 'w') as f: 
             for key, value in attrs.items(): 
                 f.write('%s:%s\n' % (key, value))
+
+
+    #Save md
+    out_dir = Path(conf['save_path']) / 'md' 
+    makedir(out_dir)
+    df_full_md.attrs=attrs
+    print(f"Saving {sector_short} marginal damages (md)")
+    df_full_md.to_netcdf(out_dir / f"{conf_savename}md-dscim-{sector_short}.nc4")  
+    print(f"md is available in {str(out_dir)}")
     
     # Saves global consumption no pulse
     # Fewer GCNPs are saved because they vary across fewer dimensions than SCGHGs
