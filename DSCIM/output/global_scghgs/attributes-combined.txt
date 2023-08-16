@@ -12,7 +12,6 @@ discounting_type:euler_ramsey
 sector:combined
 damage_function_path:C:\Users\wdavis\OneDrive - Environmental Protection Agency (EPA)\Documents\SCGHG\Code\USEPA-sc-ghg-wade\DSCIM\input\damage_functions\CAMEL_m1_c0.20
 formula:damages ~ -1 + anomaly + np.power(anomaly, 2) + gmsl + np.power(gmsl, 2)
-save_files:[]
 ecs_mask_path:None
 ecs_mask_name:None
 kwargs:{'ecs_mask_path': None, 'ecs_mask_name': None}
@@ -24,7 +23,7 @@ emission_scenarios:RFF-SPv2
 gases:['CO2', 'CH4', 'N2O']
 anomaly_vars:['temperature', 'gmsl']
 machine:unknown
-commit:7138ea6
-url:https://github.com/ClimateImpactLab/dscim-epa/commit/7138ea6f118ecf5cb7a932150f1d8d1f015cf4f0
+commit:e588c78
+url:https://github.com/ClimateImpactLab/dscim-epa/commit/e588c78c0bb095ded9bed5d26a81865647fecc94
 damagefunc_base_period:(2001, 2010)
 socioeconomics_path:C:\Users\wdavis\OneDrive - Environmental Protection Agency (EPA)\Documents\SCGHG\Code\USEPA-sc-ghg-wade\DSCIM\input\econ/rff_global_socioeconomics.nc4

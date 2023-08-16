@@ -319,6 +319,7 @@ def epa_scghgs(sectors,
         # These arrays will be populated with data arrays to be combined
         all_arrays_uscghg = []
         all_arrays_gcnp = []
+        all_arrays_md = []
 
         discount_type= j[1]
         menu_option = j[0]
